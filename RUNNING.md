@@ -40,3 +40,11 @@ Inventario y compilaciones locales del 2026-11-15. Una compilación correcta no 
 
 `.gitignore` excluye credenciales locales, estado del editor y salidas de las herramientas detectadas. No deja de versionar archivos que ya estaban en Git. Los manifiestos, archivos de bloqueo, recursos fuente y scripts de esquema forman parte del código.
 <!-- local-development:end -->
+
+
+<!-- improvements-20261119:start -->
+## Mejoras y verificación — 2026-11-19 (API REST CRUD completa en Laravel y cliente HTTP Android seguro)
+
+- **Cambios:** Implementados `store`, `show` (404), `update` (404) y `destroy` (404) con validación en `ProductosController.php`; corregido NPE en `HttpProductos.java`, añadida codificación `URLEncoder` y concatenación real de `parametros` en `GET`, inicializado `direccionUrl` con `setBaseUrl()` seguro y añadidos timeouts + cierre de recursos en `Metodos.java`.
+- **Validación:** Compilación JDK 17 + aserciones Java sobre `direccionUrl`, `Metodos` y `Producto` + verificación estructural de `ProductosController.php` y `HttpProductos.java`.
+<!-- improvements-20261119:end -->

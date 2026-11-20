@@ -4,21 +4,29 @@ package Http;
  * Created by ronald on 14/11/15.
  */
 public class direccionUrl {
-    public String url="http://192.168.1.3:8000/";
-    public Boolean error;
-    public String ErrorDescripcion;
+    public String url = "http://10.0.2.2:8000/";
+    public Boolean error = false;
+    public String ErrorDescripcion = "";
 
-    private static direccionUrl INSTANCE = new direccionUrl();//Se utiliza para asignar la conexion a la base de datos de manera global
+    private static final direccionUrl INSTANCE = new direccionUrl();
 
     private direccionUrl() {
     }
 
-    public static direccionUrl getInstance() {//Se obtiene la conexion global
+    public static direccionUrl getInstance() {
         return INSTANCE;
     }
 
-    public void Limpiar(){
-        this.error=false;
-        this.ErrorDescripcion="";
+    public void setBaseUrl(String baseUrl) {
+        if (baseUrl == null || baseUrl.trim().isEmpty()) {
+            return;
+        }
+        String trimmed = baseUrl.trim();
+        this.url = trimmed.endsWith("/") ? trimmed : (trimmed + "/");
+    }
+
+    public void Limpiar() {
+        this.error = false;
+        this.ErrorDescripcion = "";
     }
 }

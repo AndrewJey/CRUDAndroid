@@ -17,7 +17,7 @@ class ProductosController extends Controller
      */
     public function index()
     {
-        return Product::all();
+        return response()->json(Product::all(), 200);
     }
 
     /**
@@ -27,7 +27,7 @@ class ProductosController extends Controller
      */
     public function create()
     {
-        //
+        return response()->json(['message' => 'Use POST /productos con nombre, precio y cantidad.'], 200);
     }
 
     /**
@@ -38,7 +38,19 @@ class ProductosController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->validate($request, [
+            'nombre' => 'required|string|max:255',
+            'precio' => 'required|integer|min:0',
+            'cantidad' => 'required|integer|min:0',
+        ]);
+
+        $producto = Product::create([
+            'nombre' => trim($request->input('nombre')),
+            'precio' => (int) $request->input('precio'),
+            'cantidad' => (int) $request->input('cantidad'),
+        ]);
+
+        return response()->json($producto, 201);
     }
 
     /**
@@ -49,7 +61,11 @@ class ProductosController extends Controller
      */
     public function show($id)
     {
-        return Product::find($id);
+        $producto = Product::find($id);
+        if (!$producto) {
+            return response()->json(['error' => 'Producto no encontrado'], 404);
+        }
+        return response()->json($producto, 200);
     }
 
     /**
@@ -60,7 +76,7 @@ class ProductosController extends Controller
      */
     public function edit($id)
     {
-        //
+        return $this->show($id);
     }
 
     /**
@@ -72,7 +88,29 @@ class ProductosController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $producto = Product::find($id);
+        if (!$producto) {
+            return response()->json(['error' => 'Producto no encontrado'], 404);
+        }
+
+        $this->validate($request, [
+            'nombre' => 'sometimes|required|string|max:255',
+            'precio' => 'sometimes|required|integer|min:0',
+            'cantidad' => 'sometimes|required|integer|min:0',
+        ]);
+
+        if ($request->has('nombre')) {
+            $producto->nombre = trim($request->input('nombre'));
+        }
+        if ($request->has('precio')) {
+            $producto->precio = (int) $request->input('precio');
+        }
+        if ($request->has('cantidad')) {
+            $producto->cantidad = (int) $request->input('cantidad');
+        }
+        $producto->save();
+
+        return response()->json($producto, 200);
     }
 
     /**
@@ -83,6 +121,12 @@ class ProductosController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $producto = Product::find($id);
+        if (!$producto) {
+            return response()->json(['error' => 'Producto no encontrado'], 404);
+        }
+
+        $producto->delete();
+        return response()->json(['deleted' => true, 'id' => (int) $id], 200);
     }
 }

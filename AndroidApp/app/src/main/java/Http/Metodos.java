@@ -15,27 +15,34 @@ public class Metodos {
         InputStream Input = null;
         HttpURLConnection urlconection = null;
         BufferedReader reader = null;
-        String result="";
-        StringBuffer buffer= new StringBuffer();
+        String result = "";
+        StringBuilder buffer = new StringBuilder();
         try {
-            URL urlconect = new URL(url);
+            String fullUrl = (parametros != null && !parametros.trim().isEmpty())
+                    ? (url + parametros.trim())
+                    : url;
+            URL urlconect = new URL(fullUrl);
             urlconection = (HttpURLConnection) urlconect.openConnection();
+            urlconection.setConnectTimeout(10000);
+            urlconection.setReadTimeout(10000);
             urlconection.connect();
             Input = urlconection.getInputStream();
-            if(Input != null) {
-                reader = new BufferedReader(new InputStreamReader(Input));
-                String line = "";
-                try {
-                    while ((line = reader.readLine()) != null) {
-                        buffer.append(line);
-                    }
-                    result = buffer.toString();
-                } catch (Exception error) {
-                    result = error.toString();
+            if (Input != null) {
+                reader = new BufferedReader(new InputStreamReader(Input, "UTF-8"));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line);
                 }
+                result = buffer.toString();
             }
-        }catch (Exception error){
+        } catch (Exception error) {
+            direccionUrl.getInstance().error = true;
+            direccionUrl.getInstance().ErrorDescripcion = error.getMessage();
             result = error.toString();
+        } finally {
+            try { if (reader != null) reader.close(); } catch (IOException ignored) {}
+            try { if (Input != null) Input.close(); } catch (IOException ignored) {}
+            if (urlconection != null) urlconection.disconnect();
         }
         return result;
     }

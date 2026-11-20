@@ -13,7 +13,9 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,106 +23,138 @@ import java.util.List;
  * Created by USUARIO-STN-01 on 20/11/2015.
  */
 public class HttpProductos {
-    public String RegistrarUsuarioPost(String nombre, int  precio, int cantidad) {
+    private static String encodeParam(String value) {
+        try {
+            return URLEncoder.encode(value == null ? "" : value, "UTF-8");
+        } catch (Exception e) {
+            return "";
+        }
+    }
 
+    private static String safeResponseString(HttpResponse response) {
+        if (response == null) return "";
+        try {
+            HttpEntity entity = response.getEntity();
+            return entity != null ? EntityUtils.toString(entity, "UTF-8") : response.getStatusLine().toString();
+        } catch (Exception e) {
+            return response.toString();
+        }
+    }
+
+    public String RegistrarUsuarioPost(String nombre, int precio, int cantidad) {
         HttpClient httpClient = new DefaultHttpClient();
         HttpContext localContext = new BasicHttpContext();
-        HttpPost httpPost = new HttpPost(direccionUrl.getInstance().url+"productos");
+        HttpPost httpPost = new HttpPost(direccionUrl.getInstance().url + "productos");
         HttpResponse response = null;
         try {
             List<NameValuePair> params = new ArrayList<NameValuePair>(3);
-            params.add(new BasicNameValuePair("nombre", nombre));
-            params.add(new BasicNameValuePair("cantidad",String.valueOf(cantidad)));
-            params.add(new BasicNameValuePair("precio",String.valueOf(precio)));
-            params.add(new BasicNameValuePair("METHOD", "POST"));
-            httpPost.setEntity(new UrlEncodedFormEntity(params));
+            params.add(new BasicNameValuePair("nombre", nombre == null ? "" : nombre.trim()));
+            params.add(new BasicNameValuePair("cantidad", String.valueOf(cantidad)));
+            params.add(new BasicNameValuePair("precio", String.valueOf(precio)));
+            httpPost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
             response = httpClient.execute(httpPost, localContext);
         } catch (Exception e) {
-            // TODO: handle exception
+            direccionUrl.getInstance().error = true;
+            direccionUrl.getInstance().ErrorDescripcion = e.getMessage();
         }
-        return response.toString();
-
+        return safeResponseString(response);
     }
 
-    public String RegistrarUsuarioGet(String nombre, String apellido, String correo_electronico,String contrasena) {
+    public String RegistrarUsuarioGet(String nombre, String apellido, String correo_electronico, String contrasena) {
         HttpClient httpClient = new DefaultHttpClient();
         HttpContext localContext = new BasicHttpContext();
         HttpResponse response = null;
-        String parametros = "?nombre=" + nombre + "&apellido=" + apellido
-                + "&correo_electronico="+correo_electronico+"&contrasena="+contrasena;
+        String parametros = "?nombre=" + encodeParam(nombre)
+                + "&apellido=" + encodeParam(apellido)
+                + "&correo_electronico=" + encodeParam(correo_electronico)
+                + "&contrasena=" + encodeParam(contrasena);
 
-        HttpGet httpget = new HttpGet(direccionUrl.getInstance().url+"productos");
+        HttpGet httpget = new HttpGet(direccionUrl.getInstance().url + "productos" + parametros);
         try {
             response = httpClient.execute(httpget, localContext);
-
         } catch (Exception e) {
-
+            direccionUrl.getInstance().error = true;
+            direccionUrl.getInstance().ErrorDescripcion = e.getMessage();
         }
-        return response.toString();
+        return safeResponseString(response);
     }
-    public String ModificarUsuarioGet(int id,String nombre, String apellido, String correo_electronico,String contrasena) {
+
+    public String ModificarUsuarioGet(int id, String nombre, String apellido, String correo_electronico, String contrasena) {
         HttpClient httpClient = new DefaultHttpClient();
         HttpContext localContext = new BasicHttpContext();
         HttpResponse response = null;
-        String parametros = "?id="+id+"&nombre="+nombre+"&apellido=" + apellido
-                + "&correo_electronico="+correo_electronico+"&contrasena="+contrasena;
+        String parametros = "?id=" + id
+                + "&nombre=" + encodeParam(nombre)
+                + "&apellido=" + encodeParam(apellido)
+                + "&correo_electronico=" + encodeParam(correo_electronico)
+                + "&contrasena=" + encodeParam(contrasena);
 
-        HttpGet httpget = new HttpGet(direccionUrl.getInstance().url+"productos");
+        HttpGet httpget = new HttpGet(direccionUrl.getInstance().url + "productos" + parametros);
         try {
             response = httpClient.execute(httpget, localContext);
-
         } catch (Exception e) {
-
+            direccionUrl.getInstance().error = true;
+            direccionUrl.getInstance().ErrorDescripcion = e.getMessage();
         }
-        return response.toString();
+        return safeResponseString(response);
     }
+
     public String BorrarUsuarioGet(int id) {
         HttpClient httpClient = new DefaultHttpClient();
         HttpContext localContext = new BasicHttpContext();
         HttpResponse response = null;
-        String parametros = "?id="+id;
+        String parametros = "?id=" + id;
 
-        HttpGet httpget = new HttpGet(direccionUrl.getInstance().url+"productos");
+        HttpGet httpget = new HttpGet(direccionUrl.getInstance().url + "productos" + parametros);
         try {
             response = httpClient.execute(httpget, localContext);
-
         } catch (Exception e) {
-
+            direccionUrl.getInstance().error = true;
+            direccionUrl.getInstance().ErrorDescripcion = e.getMessage();
         }
-        return response.toString();
+        return safeResponseString(response);
     }
 
-
-    public String leer(){
-        HttpClient cliente =new DefaultHttpClient();
+    public String leer() {
+        HttpClient cliente = new DefaultHttpClient();
         HttpContext contexto = new BasicHttpContext();
-        HttpGet httpget = new HttpGet(direccionUrl.getInstance().url+"productos");
-        String resultado=null;
+        HttpGet httpget = new HttpGet(direccionUrl.getInstance().url + "productos");
+        String resultado = "";
         try {
-            HttpResponse response = cliente.execute(httpget,contexto);
-            HttpEntity entity = response.getEntity();
-            resultado = EntityUtils.toString(entity, "UTF-8");
+            HttpResponse response = cliente.execute(httpget, contexto);
+            HttpEntity entity = response != null ? response.getEntity() : null;
+            resultado = entity != null ? EntityUtils.toString(entity, "UTF-8") : "";
         } catch (Exception e) {
-            // TODO: handle exception
+            direccionUrl.getInstance().error = true;
+            direccionUrl.getInstance().ErrorDescripcion = e.getMessage();
         }
         return resultado;
     }
 
-    public ArrayList<String> obtDatosJSON(String response){
-        ArrayList<String> listado= new ArrayList<String>();
+    public ArrayList<String> obtDatosJSON(String response) {
+        ArrayList<String> listado = new ArrayList<String>();
+        if (response == null || response.trim().isEmpty()) {
+            return listado;
+        }
         try {
-            JSONArray json= new JSONArray(response);
-            String texto="";
-            for (int i=0; i<json.length();i++){
-                texto = json.getJSONObject(i).getString("id")+"-"+
-                        json.getJSONObject(i).getString("nombre") +" - "+
-                        json.getJSONObject(i).getString("apellido") +" - "+
-                        json.getJSONObject(i).getString("correo_electronico") +" - "+
-                        json.getJSONObject(i).getString("contrasena");
-                listado.add(texto);
+            JSONArray json = new JSONArray(response);
+            for (int i = 0; i < json.length(); i++) {
+                JSONObject item = json.getJSONObject(i);
+                String id = item.optString("id", String.valueOf(i + 1));
+                String nombre = item.optString("nombre", "Sin nombre");
+                if (item.has("precio") || item.has("cantidad")) {
+                    listado.add(id + " - " + nombre
+                            + " | Precio: " + item.optInt("precio", 0)
+                            + " | Stock: " + item.optInt("cantidad", 0));
+                } else {
+                    listado.add(id + " - " + nombre
+                            + " - " + item.optString("apellido", "")
+                            + " - " + item.optString("correo_electronico", ""));
+                }
             }
         } catch (Exception e) {
-            // TODO: handle exception
+            direccionUrl.getInstance().error = true;
+            direccionUrl.getInstance().ErrorDescripcion = e.getMessage();
         }
         return listado;
     }
